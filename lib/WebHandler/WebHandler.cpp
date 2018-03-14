@@ -317,7 +317,7 @@ void handleRootPage( AsyncWebServerRequest *request )
   response->print("<form class='pure-form'>");
   prLegend( response, "Current Status");
 
-  response->printf("<button id=\"status-button\" class=\"pure-button\" style=\"background-color: #%s\">Power is %s</button>",
+  response->printf("<div id='idpwr' class='pure-button' style='background-color: #%s'>Power is %s</div>",
    webPowerState ? "80ff80" : "ff8080", webPowerState ? "ON" : "OFF" );
    prLegend( response, "Actions");
   response->print(
@@ -325,6 +325,9 @@ void handleRootPage( AsyncWebServerRequest *request )
   "<a href=\"/?power=OFF\" class=\"pure-button button-off\">OFF</a>");
 
   response->print("</form>");
+
+  response->print( "<script>function getPowerState(){var e = document.getElementById(\"idpwr\");fetch(\"/state\").then((resp) => resp.json()).then(function(data){if(data.state===1){e.textContent=\"Power is ON\";e.style=\"background-color: #80ff80\";} else {e.textContent=\"Power is OFF\";e.style=\"background-color: #ff8080\";}});} setInterval(getPowerState,10000);</script>" );
+
   response->print( TEMPLATE_FOOTER );
   request->send(response);
 }
@@ -346,16 +349,20 @@ void WebHandler::setup()
 
   server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request) {
     relayHandler.delayedOn();
-    request->send(200, "application/json", "{\"state\":1}\r\n" );
-  });
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{\"state\":1}\r\n" );
+    response->addHeader( "Access-Control-Allow-Origin", "*" );
+    request->send(response);  });
 
   server.on("/off", HTTP_GET, [](AsyncWebServerRequest *request) {
     relayHandler.delayedOff();
-    request->send(200, "application/json", "{\"state\":0}\r\n" );
-  });
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{\"state\":0}\r\n" );
+    response->addHeader( "Access-Control-Allow-Origin", "*" );
+    request->send(response);  });
 
   server.on("/state", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "application/json", jsonStatus() );
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", jsonStatus() );
+    response->addHeader( "Access-Control-Allow-Origin", "*" );
+    request->send(response);
   });
 
   server.on("/pure-min.css", HTTP_GET, [](AsyncWebServerRequest *request) {
