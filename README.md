@@ -4,6 +4,12 @@ Alternative Firmware for https://www.obi.de/hausfunksteuerung/wifi-stecker-schuk
 ## Compile
 This is a [PlatformIO](https://platformio.org/) project.
 
+## Firmware Reset
+1. Power on the WiFi Socket (plug in)
+2. Press down and hold the Power-Button during the first 5s
+3. Release Power-Button when the WiFi LED starts rapidly fast blinking
+4. The firmware reset ends after about 30s indicated by a permanent WiFi LED on.
+
 ## Default Settings
 
 |    | value | description |
