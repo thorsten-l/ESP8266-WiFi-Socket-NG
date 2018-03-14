@@ -285,8 +285,6 @@ void handleSavePage( AsyncWebServerRequest *request )
 
 void handleRootPage( AsyncWebServerRequest *request )
 {
-  AsyncResponseStream *response = request->beginResponseStream("text/html");
-
   webPowerState = relayHandler.isPowerOn();
 
   if(request->hasParam( "power" ))
@@ -306,17 +304,24 @@ void handleRootPage( AsyncWebServerRequest *request )
         relayHandler.delayedOff();
       }
     }
+    request->redirect("/");
+    return;
   }
 
+  AsyncResponseStream *response = request->beginResponseStream("text/html");
   response->printf( TEMPLATE_HEADER, APP_NAME " - " APP_VERSION );
 
-  response->print("<h3>Current Status</h3>");
+  response->print("<form class='pure-form'>");
+  prLegend( response, "Current Status");
+
   response->printf("<button id=\"status-button\" class=\"pure-button\" style=\"background-color: #%s\">Power is %s</button>",
    webPowerState ? "80ff80" : "ff8080", webPowerState ? "ON" : "OFF" );
-  response->print("<h3>Action</h3>"
+   prLegend( response, "Actions");
+  response->print(
   "<a href=\"/?power=ON\" class=\"pure-button button-on\">ON</a>"
   "<a href=\"/?power=OFF\" class=\"pure-button button-off\">OFF</a>");
 
+  response->print("</form>");
   response->print( TEMPLATE_FOOTER );
   request->send(response);
 }
@@ -326,19 +331,6 @@ WebHandler::WebHandler()
 {
   initialized = false;
 }
-
-
-String info_processor(const String& var)
-{
-  if(var == "BUILD_DATE") return F(__DATE__);
-  if(var == "BUILD_TIME") return F(__TIME__);
-
-  if(var == "APP_VERSION" ) return F(APP_VERSION);
-  if(var == "IP_ADDR" ) return WiFi.localIP().toString();
-
-  return String();
-}
-
 
 void WebHandler::setup()
 {
@@ -381,27 +373,36 @@ void WebHandler::setup()
     AsyncResponseStream *response = request->beginResponseStream("text/html");
     response->printf( TEMPLATE_HEADER, APP_NAME " - Info");
 
+    response->print("<form class='pure-form'>");
+
+
+    prLegend( response, "Application");
+
     response->print(
-      "<h3>Application</h3>"
       "<p>Name: " APP_NAME "</p>"
       "<p>Version: " APP_VERSION "</p>"
-      "<p>Author: Dr. Thorsten Ludewig &lt;t.ludewig@gmail.com></p>"
-      "<h3>RESTful API</h3>" );
+      "<p>Author: Dr. Thorsten Ludewig &lt;t.ludewig@gmail.com></p>");
+
+    prLegend( response, "RESTful API");
       char ipAddress[16];
       strcpy( ipAddress, WiFi.localIP().toString().c_str());
 
-    response->printf("<p>http://%s/on - Socket ON</p>"
-      "<p>http://%s/off - Socket OFF</p>"
-      "<p>http://%s/state - Socket JSON status (0 or 1)</p>"
-      "<h3>Build</h3>"
-      "<p>Date : " __DATE__ "</p>"
-      "<p>Time : " __TIME__ "</p>"
-      "<h3>Services</h3>", ipAddress, ipAddress, ipAddress );
+    response->printf("<p><a href='http://%s/on'>http://%s/on</a> - Socket ON</p>"
+      "<p><a href='http://%s/off'>http://%s/off</a> - Socket OFF</p>"
+      "<p><a href='http://%s/state'>http://%s/state</a> - Socket JSON status (0 or 1)</p>",
+      ipAddress, ipAddress, ipAddress, ipAddress, ipAddress, ipAddress );
 
-    response->printf( "<p>OpenHAB Callback Enabled = %s</p>", (appcfg.ohab_enabled) ? "true" : "false" );
-    response->printf( "<p>Alexa Enabled = %s</p>", (appcfg.alexa_enabled) ? "true" : "false" );
-    response->printf( "<p>MQTT Enabled = %s</p>", (appcfg.mqtt_enabled) ? "true" : "false" );
+      prLegend( response, "Build");
+      response->print(
+        "<p>Date: " __DATE__ "</p>"
+        "<p>Time: " __TIME__ "</p>");
 
+    prLegend( response, "Services");
+    response->printf( "<p>OpenHAB Callback Enabled: %s</p>", (appcfg.ohab_enabled) ? "true" : "false" );
+    response->printf( "<p>Alexa Enabled: %s</p>", (appcfg.alexa_enabled) ? "true" : "false" );
+    response->printf( "<p>MQTT Enabled: %s</p>", (appcfg.mqtt_enabled) ? "true" : "false" );
+
+    response->print("</form>");
     response->print( TEMPLATE_FOOTER );
     request->send( response );
   });
