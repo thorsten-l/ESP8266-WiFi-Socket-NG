@@ -11,6 +11,7 @@ This is a [PlatformIO](https://platformio.org/) project.
 4. The firmware reset ends after about 30s indicated by a permanent WiFi LED on.
 
 ## Default Settings
+After a firmware reset the following values are set.
 
 |    | value | description |
 |----|-------|-------------|
@@ -43,7 +44,7 @@ This is a [PlatformIO](https://platformio.org/) project.
 ## Hardware
 [OBI Wifi Stecker Schuko](https://www.obi.de/hausfunksteuerung/wifi-stecker-schuko/p/2291706)
 
-## OpenHAB - HTTP Binding sample
+## OpenHAB 1.x - HTTP Binding sample
 
 ```
 Switch pOD_Licht "Ein / Aus" {http=">[ON:GET:http://wifi-socket.ip/on] >[OFF:GET:http://wifi-socket.ip/off]"}
