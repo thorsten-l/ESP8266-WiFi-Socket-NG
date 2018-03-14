@@ -184,6 +184,17 @@ void App::writeConfig()
     LOG1("%d bytes written to appcfg file.\n", length );
 
     configFile.close();
+
+    FSInfo fs_info;
+    SPIFFS.info(fs_info);
+
+    Serial.printf( "\n--- SPIFFS Info ---\ntotal bytes = %d\n", fs_info.totalBytes );
+    Serial.printf( "used bytes = %d\n", fs_info.usedBytes );
+    Serial.printf( "block size = %d\n", fs_info.blockSize );
+    Serial.printf( "page size = %d\n", fs_info.pageSize );
+    Serial.printf( "max open files = %d\n", fs_info.maxOpenFiles );
+    Serial.printf( "max path length = %d\n", fs_info.maxPathLength );
+
     SPIFFS.end();
   }
 }
