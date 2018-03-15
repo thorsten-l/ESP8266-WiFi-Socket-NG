@@ -1,6 +1,6 @@
 # Firmware Binary
 If you do not wish to compile this firmware by your own, you can use the
-precompile firmware version in this directory.
+precompiled firmware in this directory.
 
 ---
 
@@ -29,5 +29,6 @@ The [espota.py](https://github.com/esp8266/Arduino/blob/master/tools/espota.py) 
 Again i used the `espota.py` comes with [PlatformIO](https://platformio.org/).
 
 ## References
+- [PlatformIO](https://platformio.org/)
 - [esptool](https://github.com/espressif/esptool)
 - [espota.py](https://github.com/esp8266/Arduino/blob/master/tools/espota.py)
