@@ -60,3 +60,11 @@ add
 <[http://wifi-socket.ip/state:30000:JS(getState.js)]
 ```
 to the `Switch` definition. Every 30s the state of the socket will be checked.
+
+## References
+- [PlatformIO](https://platformio.org/)
+- [Arduino core for ESP8266 WiFi chip](https://github.com/esp8266/Arduino)
+- [Async TCP Library for ESP8266](https://github.com/me-no-dev/ESPAsyncTCP)
+- [Async Web Server for ESP8266 and ESP32](https://github.com/me-no-dev/ESPAsyncWebServer)
+- [FauxmoESP - Amazon Alexa support for ESP8266 and ESP32 devices](https://bitbucket.org/xoseperez/fauxmoesp)
+- [A client library for the ESP8266 that provides support for MQTT](https://github.com/heman4t/Arduino-pubsubclient)
