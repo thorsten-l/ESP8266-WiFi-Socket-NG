@@ -1,6 +1,9 @@
 # ESP8266-WiFi-Socket-NG
 Alternative Firmware for https://www.obi.de/hausfunksteuerung/wifi-stecker-schuko/p/2291706
 
+## Precompiled Firmware
+Find the precompiled firmware in the [firmware](https://github.com/thorsten-l/ESP8266-WiFi-Socket-NG/tree/master/firmware) directory.
+
 ## Compile
 This is a [PlatformIO](https://platformio.org/) project.
 
