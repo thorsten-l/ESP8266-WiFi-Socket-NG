@@ -47,10 +47,12 @@ After a firmware reset the following values are set.
 ## Hardware
 [OBI Wifi Stecker Schuko](https://www.obi.de/hausfunksteuerung/wifi-stecker-schuko/p/2291706)
 
-## OpenHAB 1.x - HTTP Binding sample
+## OpenHAB
+
+### OpenHAB - HTTP Binding sample
 
 ```
-Switch pOD_Licht "Ein / Aus" {http=">[ON:GET:http://wifi-socket.ip/on] >[OFF:GET:http://wifi-socket.ip/off]"}
+Switch LivingRoom_Power "Living Room Outlet" {http=">[ON:GET:http://wifi-socket.ip/on] >[OFF:GET:http://wifi-socket.ip/off]"}
 ```
 
 If you like to read the state of the socket by OpenHAB. First create a file `getState.js` in the `transform` directory with the following content:
@@ -64,6 +66,12 @@ add
 ```
 to the `Switch` definition. Every 30s the state of the socket will be checked.
 
+### OpenHAB - MQTT binding sample
+
+```
+Switch LivingRoom_Power "Living Room Outlet" {mqtt=">[broker1:socket1/in:command:*:default], <[broker1:socket1/out:state:default]"}
+```
+
 ## References
 - [PlatformIO](https://platformio.org/)
 - [Arduino core for ESP8266 WiFi chip](https://github.com/esp8266/Arduino)
@@ -71,4 +79,4 @@ to the `Switch` definition. Every 30s the state of the socket will be checked.
 - [Async Web Server for ESP8266 and ESP32](https://github.com/me-no-dev/ESPAsyncWebServer)
 - [FauxmoESP - Amazon Alexa support for ESP8266 and ESP32 devices](https://bitbucket.org/xoseperez/fauxmoesp)
 - [Arduino-pubsubclient - A client library for the ESP8266 that provides support for MQTT](https://github.com/heman4t/Arduino-pubsubclient)
-- [Pure.CSS - A nice CSS, as GZIP it is less than 4k so it is useful for embedded devices](https://purecss.io/) 
+- [Pure.CSS - A nice CSS, as GZIP it is less than 4k so it is useful for embedded devices](https://purecss.io/)
