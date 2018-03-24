@@ -16,39 +16,37 @@ AlexaHandler::AlexaHandler()
 
 void AlexaHandler::setup()
 {
-  if ( appcfg.alexa_enabled )
+  LOG1("Alexa setup... enabled=%s\n", (appcfg.alexa_enabled) ? "true" : "false" );
+  fauxmo.addDevice(appcfg.alexa_devicename);
+  fauxmo.enable(appcfg.alexa_enabled);
+
+  fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state)
   {
-    LOG0("Alexa setup...\n");
-    fauxmo.addDevice(appcfg.alexa_devicename);
-    fauxmo.enable(true);
+    Serial.printf("(%ld) Device #%d (%s) state: %s\n", millis(), device_id, device_name, state ? "ON" : "OFF");
 
-    fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state)
+    if( state )
     {
-      Serial.printf("(%ld) Device #%d (%s) state: %s\n", millis(), device_id, device_name, state ? "ON" : "OFF");
-
-      if( state )
-      {
-        relayHandler.delayedOn();
-      }
-      else
-      {
-        relayHandler.delayedOff();
-      }
-    });
-
-    fauxmo.onGetState([](unsigned char device_id, const char * device_name)
+      relayHandler.delayedOn();
+    }
+    else
     {
-      return relayHandler.isPowerOn();
-    });
-  }
+      relayHandler.delayedOff();
+    }
+  });
+
+  fauxmo.onGetState([](unsigned char device_id, const char * device_name)
+  {
+    return relayHandler.isPowerOn();
+  });
+
   initialized = true;
 }
 
 void AlexaHandler::handle()
 {
-  if( appcfg.alexa_enabled && wifiHandler.isReady())
+  if( wifiHandler.isReady())
   {
-    if( ! initialized )
+    if( !initialized )
     {
       setup();
     }
