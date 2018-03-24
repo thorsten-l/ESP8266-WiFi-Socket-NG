@@ -8,30 +8,37 @@ WifiHandler wifiHandler;
 
 static time_t lastTimestamp;
 
+static void wifiOff()
+{
+  WiFi.persistent(false);
+  WiFi.mode(WIFI_OFF);
+  WiFi.setOutputPower(0.0f);
+  WiFi.hostname(appcfg.ota_hostname);
+}
+
+static void wifiInitStationMode()
+{
+  LOG0("Starting Wifi in Station Mode");
+  WiFi.begin( appcfg.wifi_ssid, appcfg.wifi_password );
+  WiFi.setAutoConnect(true);
+  WiFi.setAutoReconnect(true);
+}
+
 void WifiHandler::setup()
 {
   LOG0("WiFi Setup started...\n");
   connected = false;
   lastTimestamp = 0;
 
-  WiFi.persistent(false);
-  WiFi.mode(WIFI_OFF);
-  WiFi.setOutputPower(0.0f);
-  WiFi.hostname(appcfg.ota_hostname);
+  wifiOff();
 
   scanNetworks();
 
-  WiFi.persistent(false);
-  WiFi.mode(WIFI_OFF);
-  WiFi.setOutputPower(0.0f);
-  WiFi.hostname(appcfg.ota_hostname);
+  wifiOff();
 
   if ( isInStationMode() )
   {
-    LOG0("Starting Wifi in Station Mode");
-    WiFi.begin( appcfg.wifi_ssid, appcfg.wifi_password );
-    WiFi.setAutoConnect(true);
-    WiFi.setAutoReconnect(true);
+    wifiInitStationMode();
   }
   else
   {
@@ -67,6 +74,10 @@ const bool WifiHandler::handle( time_t timestamp )
       else
       {
         LOG0( "WARNING: WiFi connection lost!\n" );
+
+        wifiOff();
+        wifiInitStationMode();
+
         connected = false;
       }
     }
