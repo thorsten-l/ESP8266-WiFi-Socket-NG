@@ -229,13 +229,7 @@ void handleSavePage( AsyncWebServerRequest *request )
   for(int i=0;i<params;i++)
   {
     AsyncWebParameter* p = request->getParam(i);
-    if(p->isFile()){ //p->isPost() is also true
-      response->printf("FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
-    } else if(p->isPost()){
-      response->printf("POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
-    } else {
-      response->printf("GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
-    }
+    response->printf("%s = '%s'\n", p->name().c_str(), p->value().c_str());
   }
 
   // Security
