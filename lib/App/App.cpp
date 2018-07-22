@@ -241,12 +241,15 @@ void App::printConfig()
 void App::delayedSystemRestart()
 {
   doSystemRestart = true;
+  systemRestartTimestamp = millis();
+  LOG0("*** delayedSystemRestart ***\n");
 }
 
 void App::handle()
 {
-  if( doSystemRestart )
+  if( doSystemRestart && ( millis() - systemRestartTimestamp ) > 5000 )
   {
+    LOG0("*** doSystemRestart ***\n");
     writeConfig();
     restartSystem();
   }
