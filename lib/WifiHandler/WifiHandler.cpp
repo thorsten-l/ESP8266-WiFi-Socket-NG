@@ -8,6 +8,17 @@ WifiHandler wifiHandler;
 
 static time_t lastTimestamp;
 
+static char currentSSID[64];
+static char currentPass[64];
+static int currentMode;
+
+static void copyWifiCredentials()
+{
+  strncpy( currentSSID, appcfg.wifi_ssid, 63 );
+  strncpy( currentPass, appcfg.wifi_password, 63 );
+  currentMode = appcfg.wifi_mode;
+}
+
 static void wifiOff()
 {
   WiFi.persistent(false);
@@ -19,7 +30,10 @@ static void wifiOff()
 static void wifiInitStationMode()
 {
   LOG0("Starting Wifi in Station Mode");
-  WiFi.begin( appcfg.wifi_ssid, appcfg.wifi_password );
+  copyWifiCredentials();
+  WiFi.begin();
+  WiFi.hostname(appcfg.ota_hostname);
+  WiFi.begin( currentSSID, currentPass );
   WiFi.setAutoConnect(true);
   WiFi.setAutoReconnect(true);
 }
@@ -27,6 +41,7 @@ static void wifiInitStationMode()
 void WifiHandler::setup()
 {
   LOG0("WiFi Setup started...\n");
+  copyWifiCredentials();
   connected = false;
   lastTimestamp = 0;
 
@@ -46,11 +61,13 @@ void WifiHandler::setup()
     char buffer[64];
     sprintf( buffer, DEFAULT_WIFI_SSID, ESP.getChipId());
     strcpy( appcfg.wifi_ssid, buffer );
+    copyWifiCredentials();
+
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig( IPAddress( 192, 168, 192, 1 ),
                        IPAddress( 192, 168, 192, 1 ),
                        IPAddress( 255, 255, 255, 0 ));
-    WiFi.softAP( appcfg.wifi_ssid, appcfg.wifi_password );
+    WiFi.softAP( currentSSID, currentPass );
     Serial.print("AP IP address: ");
     Serial.println(WiFi.softAPIP());
     digitalWrite( WIFI_LED, true );
@@ -86,7 +103,7 @@ const bool WifiHandler::handle( time_t timestamp )
       if ( status == WL_CONNECTED )
       {
         Serial.println("\n");
-        Serial.printf("WiFi connected to %s\n", appcfg.wifi_ssid);
+        Serial.printf("WiFi connected to %s\n", currentSSID );
         Serial.print("IP address: ");
         Serial.println(WiFi.localIP());
         Serial.println();
@@ -105,7 +122,7 @@ const bool WifiHandler::handle( time_t timestamp )
 
 const bool WifiHandler::isInStationMode()
 {
-  return (appcfg.wifi_mode == WIFI_STA);
+  return ( currentMode == WIFI_STA );
 }
 
 const bool WifiHandler::isConnected()
