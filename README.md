@@ -1,6 +1,9 @@
 # ESP8266-WiFi-Socket-NG
 Alternative Firmware for https://www.obi.de/hausfunksteuerung/wifi-stecker-schuko/p/2291706
 
+## New OBI Wifi Socket since late 2018
+Find the new repository for new OBI socket [here](https://github.com/thorsten-l/ESP8266-WiFi-Socket-II).
+
 ## Precompiled Firmware
 Find the precompiled firmware in the [firmware](https://github.com/thorsten-l/ESP8266-WiFi-Socket-NG/tree/master/firmware) directory.
 
