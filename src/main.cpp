@@ -63,7 +63,7 @@ void loop()
    {
      otaHandler.handle();
      webHandler.handle();
-     // alexaHandler.handle();
+     alexaHandler.handle();
      mqttHandler.handle();
    }
 
