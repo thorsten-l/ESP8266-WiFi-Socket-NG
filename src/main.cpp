@@ -4,7 +4,7 @@
 #include <OtaHandler.hpp>
 #include <RelayHandler.hpp>
 #include <WebHandler.hpp>
-// #include <AlexaHandler.hpp>
+#include <AlexaHandler.hpp>
 #include <MqttHandler.hpp>
 
 time_t lifeTicker;

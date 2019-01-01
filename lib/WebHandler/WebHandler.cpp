@@ -4,6 +4,7 @@
 #include <ESP8266mDNS.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <AlexaHandler.hpp>
 #include <WifiHandler.hpp>
 #include <RelayHandler.hpp>
 #include "WebHandler.hpp"
@@ -15,6 +16,23 @@ WebHandler webHandler;
 
 static AsyncWebServer server(80);
 static bool webPowerState;
+
+String jsonInfo()
+{
+  char buffer[512];
+  sprintf(buffer,
+          "{"
+          "\"chip_id\":\"%08X\","
+          "\"cpu_freq\":\"%dMhz\","
+          "\"flash_size\":\"%u\","
+          "\"flash_speed\":\"%u\","
+          "\"ide_size\":\"%u\""
+          "}",
+          ESP.getChipId(), ESP.getCpuFreqMHz(), ESP.getFlashChipRealSize(),
+          ESP.getFlashChipSpeed(), ESP.getFlashChipSize());
+  String message(buffer);
+  return message;
+}
 
 String jsonStatus()
 {
@@ -339,7 +357,6 @@ void WebHandler::setup()
   server.on( "/", HTTP_GET, handleRootPage );
   server.on( "/setup.html", HTTP_GET, handleSetupPage );
   server.on( "/savecfg", HTTP_POST, handleSavePage );
-  server.onNotFound( handlePageNotFound );
 
   server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request) {
     relayHandler.delayedOn();
@@ -356,6 +373,13 @@ void WebHandler::setup()
   server.on("/state", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", jsonStatus() );
     response->addHeader( "Access-Control-Allow-Origin", "*" );
+    request->send(response);
+  });
+
+  server.on("/info", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response =
+        request->beginResponse(200, "application/json", jsonInfo());
+    response->addHeader("Access-Control-Allow-Origin", "*");
     request->send(response);
   });
 
@@ -410,6 +434,33 @@ void WebHandler::setup()
     response->print( TEMPLATE_FOOTER );
     request->send( response );
   });
+
+  if (appcfg.alexa_enabled == true)
+  {
+    // These two callbacks are required for gen1 and gen3 compatibility
+    server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data,
+                            size_t len, size_t index, size_t total) {
+      LOG0("server.onRequestBody ");
+      if (fauxmo.process(request->client(), request->method() == HTTP_GET,
+                         request->url(), String((char *)data)))
+        return;
+      // Handle any other body request here...
+    });
+    server.onNotFound([](AsyncWebServerRequest *request) {
+      // LOG0("server.onNotFound");
+      String body = (request->hasParam("body", true))
+                        ? request->getParam("body", true)->value()
+                        : String();
+      if (fauxmo.process(request->client(), request->method() == HTTP_GET,
+                         request->url(), body))
+        return;
+      handlePageNotFound(request);
+    });
+  }
+  else
+  {
+    server.onNotFound(handlePageNotFound);
+  }
 
   MDNS.addService("http", "tcp", 80);
   MDNS.addServiceTxt( "http", "tcp", "path", "/" );
