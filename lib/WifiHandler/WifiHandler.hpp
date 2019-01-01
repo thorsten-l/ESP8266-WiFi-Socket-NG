@@ -15,6 +15,7 @@ public:
   const bool isInStationMode();
   const char* getScannedNetworks();
   const bool handle( time_t timestamp );
+  const char *getLocalIP();
 };
 
 extern WifiHandler wifiHandler;

@@ -2,25 +2,16 @@
 #include <DefaultAppConfig.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include <Syslog.hpp>
 #include "WifiHandler.hpp"
 
 WifiHandler wifiHandler;
 
 static time_t lastTimestamp;
 
-static char currentSSID[64];
-static char currentPass[64];
-static int currentMode;
-
-static void copyWifiCredentials()
-{
-  strncpy( currentSSID, appcfg.wifi_ssid, 63 );
-  strncpy( currentPass, appcfg.wifi_password, 63 );
-  currentMode = appcfg.wifi_mode;
-}
-
 static void wifiOff()
 {
+  digitalWrite(WIFI_LED, false );
   WiFi.persistent(false);
   WiFi.mode(WIFI_OFF);
   WiFi.setOutputPower(0.0f);
@@ -29,11 +20,33 @@ static void wifiOff()
 
 static void wifiInitStationMode()
 {
+  WiFi.disconnect();
+  ESP.eraseConfig();
+  delay(500);
+
   LOG0("Starting Wifi in Station Mode");
-  copyWifiCredentials();
+  if (appcfg.net_mode == NET_MODE_STATIC)
+  {
+    LOG0("use static ip address");
+    IPAddress host;
+    host.fromString(appcfg.net_host);
+    IPAddress gateway;
+    gateway.fromString(appcfg.net_gateway);
+    IPAddress mask;
+    mask.fromString(appcfg.net_mask);
+    IPAddress dns;
+    dns.fromString(appcfg.net_dns);
+    WiFi.config(host, gateway, mask);
+    WiFi.dnsIP(dns);
+  }
+  else
+  {
+    LOG0("use dhcp server");
+  }
+
   WiFi.begin();
   WiFi.hostname(appcfg.ota_hostname);
-  WiFi.begin( currentSSID, currentPass );
+  WiFi.begin( appcfg.wifi_ssid, appcfg.wifi_password );
   WiFi.setAutoConnect(true);
   WiFi.setAutoReconnect(true);
 }
@@ -41,7 +54,6 @@ static void wifiInitStationMode()
 void WifiHandler::setup()
 {
   LOG0("WiFi Setup started...\n");
-  copyWifiCredentials();
   connected = false;
   lastTimestamp = 0;
 
@@ -59,17 +71,25 @@ void WifiHandler::setup()
   {
     LOG0("Starting Wifi Access Point Mode\n");
     char buffer[64];
-    sprintf( buffer, DEFAULT_WIFI_SSID, ESP.getChipId());
-    strcpy( appcfg.wifi_ssid, buffer );
-    copyWifiCredentials();
+    sprintf(buffer, DEFAULT_WIFI_SSID, ESP.getChipId());
+    strcpy(appcfg.wifi_ssid, buffer);
 
     WiFi.mode(WIFI_AP);
-    WiFi.softAPConfig( IPAddress( 192, 168, 192, 1 ),
-                       IPAddress( 192, 168, 192, 1 ),
-                       IPAddress( 255, 255, 255, 0 ));
-    WiFi.softAP( currentSSID, currentPass );
+
+    IPAddress host;
+    host.fromString(appcfg.net_host);
+    IPAddress gateway;
+    gateway.fromString(appcfg.net_gateway);
+    IPAddress mask;
+    mask.fromString(appcfg.net_mask);
+    IPAddress dns;
+    dns.fromString(appcfg.net_dns);
+
+    WiFi.softAPConfig(host, gateway, mask);
+    WiFi.softAP(appcfg.wifi_ssid, appcfg.wifi_password);
     Serial.print("AP IP address: ");
     Serial.println(WiFi.softAPIP());
+
     digitalWrite( WIFI_LED, true );
     connected = true;
   }
@@ -103,11 +123,42 @@ const bool WifiHandler::handle( time_t timestamp )
       if ( status == WL_CONNECTED )
       {
         Serial.println("\n");
-        Serial.printf("WiFi connected to %s\n", currentSSID );
-        Serial.print("IP address: ");
-        Serial.println(WiFi.localIP());
+        Serial.printf("WiFi connected to %s\n", appcfg.wifi_ssid);
+
+        if (appcfg.net_mode == NET_MODE_DHCP)
+        {
+          Serial.println("copy wifi config from dhcp response");
+          strncpy(appcfg.net_host, WiFi.localIP().toString().c_str(), 63);
+          strncpy(appcfg.net_gateway, WiFi.gatewayIP().toString().c_str(), 63);
+          strncpy(appcfg.net_mask, WiFi.subnetMask().toString().c_str(), 63);
+          strncpy(appcfg.net_dns, WiFi.dnsIP().toString().c_str(), 63);
+        }
+        else
+        {
+          Serial.println("setting dns server");
+          IPAddress dns;
+          dns.fromString(appcfg.net_dns);
+          WiFi.dnsIP(dns);
+        }
+
+        Serial.printf(" - host ip address: %s\n", appcfg.net_host);
+        Serial.printf(" - gateway: %s\n", appcfg.net_gateway);
+        Serial.printf(" - mask: %s\n", appcfg.net_mask);
+        Serial.printf(" - dns server: %s\n", appcfg.net_dns);
+
+        if (appcfg.syslog_enabled)
+        {
+          syslog.logInfo(APP_NAME ", Version " APP_VERSION ", by " APP_AUTHOR);
+          syslog.logInfo("Build date: " __DATE__ " " __TIME__);
+          syslog.logInfo("WiFi connected");
+          syslog.logInfo("  host ip addr:", appcfg.net_host);
+          syslog.logInfo("  netmask:", appcfg.net_mask);
+          syslog.logInfo("  gateway:", appcfg.net_gateway);
+          syslog.logInfo("  dns server:", appcfg.net_dns);
+        }
+
         Serial.println();
-        digitalWrite( WIFI_LED, true );
+        digitalWrite(WIFI_LED, 1 );
         connected = true;
       }
       else
@@ -122,7 +173,7 @@ const bool WifiHandler::handle( time_t timestamp )
 
 const bool WifiHandler::isInStationMode()
 {
-  return ( currentMode == WIFI_STA );
+  return ( appcfg.wifi_mode == WIFI_STA );
 }
 
 const bool WifiHandler::isConnected()
@@ -173,4 +224,13 @@ const char* WifiHandler::scanNetworks()
 const char* WifiHandler::getScannedNetworks()
 {
   return networkBuffer;
+}
+
+char ipBuffer[32];
+
+const char *WifiHandler::getLocalIP()
+{
+  strncpy(ipBuffer, WiFi.localIP().toString().c_str(), 31);
+  ipBuffer[31] = 0;
+  return ipBuffer;
 }

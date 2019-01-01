@@ -7,7 +7,7 @@
 #define LOG1( format, x) Serial.printf( "(%ld) " format, millis(), x )
 
 #define APP_NAME "WiFi Socket NG"
-#define APP_VERSION "1.2.0"
+#define APP_VERSION "1.2.1dev4"
 #define APP_AUTHOR "Dr. Thorsten Ludewig <t.ludewig@gmail.com>"
 #define APP_CONFIG_FILE "/config.bin"
 
@@ -16,11 +16,21 @@
 #define RELAY_TRIGGER_OFF 5
 #define RELAY_TRIGGER_ON 12
 
+// Network mode
+#define NET_MODE_STATIC 1
+#define NET_MODE_DHCP 2
+
 typedef struct appconfig
 {
   char wifi_ssid[64];
   char wifi_password[64];
   int  wifi_mode;
+
+  int net_mode;
+  char net_host[64];
+  char net_mask[64];
+  char net_gateway[64];
+  char net_dns[64];
 
   char ota_hostname[64];
   char ota_password[64];
@@ -49,6 +59,10 @@ typedef struct appconfig
   char mqtt_intopic[64];
   char mqtt_outtopic[64];
 
+  bool syslog_enabled;
+  char syslog_host[64];
+  int syslog_port;
+  char syslog_app_name[64];
 } AppConfig;
 
 class App
@@ -73,5 +87,6 @@ public:
 
 extern App app;
 extern AppConfig appcfg;
+extern AppConfig appcfgWR;
 
 #endif
