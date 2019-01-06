@@ -2,6 +2,10 @@
 
 Alternative Firmware for `https://www.obi.de/hausfunksteuerung/wifi-stecker-schuko/p/2291706`
 
+## Attention
+
+The Development of this repository has stopped! Every further development will be done in [this](https://github.com/thorsten-l/ESP8266-WiFi-Socket-II) repository.
+
 ## New OBI Wifi Socket since late 2018
 
 Find the new repository for new OBI socket [here](https://github.com/thorsten-l/ESP8266-WiFi-Socket-II).
